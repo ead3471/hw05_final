@@ -1,5 +1,4 @@
 from django.shortcuts import redirect, render, get_object_or_404
-from django.urls import reverse_lazy
 from .models import Follow, Post, Group, Comment
 from .forms import PostForm, CommentForm
 from django.contrib.auth import get_user_model
@@ -8,8 +7,8 @@ from .utils import get_page
 from django.utils import timezone
 from django.views.decorators.cache import cache_page
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic import CreateView
-
+from django.views.generic import CreateView, UpdateView
+from django.urls import reverse
 
 User = get_user_model()
 
@@ -75,20 +74,15 @@ class PostCreateView(LoginRequiredMixin, CreateView):
     model = Post
     form_class = PostForm
     context_object_name = "form"
-    #success_url = reverse_lazy('posts:profile') 
 
-    # def get_success_url(self):
-    #             user_name = self.object.author.username
-    #             return reverse_lazy('posts:profile', args=(user_name,))
-    
     def form_valid(self, form):
         post = form.save(commit=False)
         post.created = timezone.now()
         post.author = self.request.user
         post.save()
-    # do something with self.object
-    # remember the import: from django.http import HttpResponseRedirect
         return redirect('posts:profile', username=self.request.user.username)
+
+
 
 # @login_required
 # def post_create(request):
@@ -106,6 +100,30 @@ class PostCreateView(LoginRequiredMixin, CreateView):
 #                   'posts/create_post.html',
 #                   {'form': form})
 
+class PostEditView(LoginRequiredMixin, UpdateView):
+    model = Post
+    template_name = 'posts/create_post.html'
+    fields = ['text','image','group']
+
+    def get_success_url(self):
+        return reverse('posts:post_detail', args=(self.get_object().pk,))
+
+    def get(self,request,pk):
+        if self.get_object().author != request.user:
+            return redirect('posts:post_detail', post_id=self.get_object().pk)
+        return super().get(request,pk)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['is_edit'] = True
+        return context
+
+    def form_valid(self, form):
+        if self.get_object().author != self.request.user:
+            return redirect('posts:post_detail', post_id=self.get_object().pk)
+
+        form.save()
+        return redirect('posts:post_detail', post_id=self.get_object().pk)
 
 @login_required
 def post_edit(request, post_id):

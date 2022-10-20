@@ -11,7 +11,11 @@
 
 {% block form_header %}
 
-  Новый пост
+  {% if is_edit %}
+    Редактировать запись
+  {% else %}
+    Добавить запись
+  {% endif %}
 {% endblock form_header %}
 
 {% block form_action_title %}

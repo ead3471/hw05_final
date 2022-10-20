@@ -162,9 +162,9 @@ class PostTestForms(TestCase):
             f'/posts/{PostTestForms.new_post.id}/')
 
         edited_post = Post.objects.filter(
-            id=PostTestForms.new_post.id,
+            id=PostTestForms.new_post.pk,
             text=edit_post_data["text"],
-            group=PostTestForms.new_group.id,
+            group=PostTestForms.new_group.pk,
         )
         self.assertFalse(edited_post.exists())
 
