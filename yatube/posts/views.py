@@ -1,4 +1,5 @@
 from django.shortcuts import redirect, render, get_object_or_404
+from django.urls import reverse_lazy
 from .models import Follow, Post, Group, Comment
 from .forms import PostForm, CommentForm
 from django.contrib.auth import get_user_model
@@ -6,6 +7,8 @@ from django.contrib.auth.decorators import login_required
 from .utils import get_page
 from django.utils import timezone
 from django.views.decorators.cache import cache_page
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views.generic import CreateView
 
 
 User = get_user_model()
@@ -67,21 +70,41 @@ def post_detail(request, post_id):
     return render(request, 'posts/post_detail.html', context)
 
 
-@login_required
-def post_create(request):
-    form = PostForm(request.POST or None)
+class PostCreateView(LoginRequiredMixin, CreateView):
+    template_name = 'posts/create_post.html'
+    model = Post
+    form_class = PostForm
+    context_object_name = "form"
+    #success_url = reverse_lazy('posts:profile') 
 
-    if request.method == "POST":
-        if form.is_valid():
-            post = form.save(commit=False)
-            post.created = timezone.now()
-            post.author = request.user
-            post.save()
-            return redirect('posts:profile', username=request.user.username)
+    # def get_success_url(self):
+    #             user_name = self.object.author.username
+    #             return reverse_lazy('posts:profile', args=(user_name,))
+    
+    def form_valid(self, form):
+        post = form.save(commit=False)
+        post.created = timezone.now()
+        post.author = self.request.user
+        post.save()
+    # do something with self.object
+    # remember the import: from django.http import HttpResponseRedirect
+        return redirect('posts:profile', username=self.request.user.username)
 
-    return render(request,
-                  'posts/create_post.html',
-                  {'form': form})
+# @login_required
+# def post_create(request):
+#     form = PostForm(request.POST or None)
+
+#     if request.method == "POST":
+#         if form.is_valid():
+#             post = form.save(commit=False)
+#             post.created = timezone.now()
+#             post.author = request.user
+#             post.save()
+#             return redirect('posts:profile', username=request.user.username)
+
+#     return render(request,
+#                   'posts/create_post.html',
+#                   {'form': form})
 
 
 @login_required
