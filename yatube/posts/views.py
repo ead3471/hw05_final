@@ -74,7 +74,7 @@ def post_create(request):
     if request.method == "POST":
         if form.is_valid():
             post = form.save(commit=False)
-            post.pub_date = timezone.now()
+            post.created = timezone.now()
             post.author = request.user
             post.save()
             return redirect('posts:profile', username=request.user.username)
@@ -121,19 +121,19 @@ def add_comment(request, post_id):
 @login_required
 def follow_index(request):
     POSTS_PER_PAGE = 10
-    user_follows_authors_ids = (Follow.
-                                objects.
-                                filter(user=request.user).
+    user_follows_authors_ids = (request.
+                                user.
+                                follower.
                                 values_list("author__id", flat=True))
 
-    user_follow_authors_posts = (Post.
-                                 objects.
-                                 filter(
-                                     author__id__in=user_follows_authors_ids))
+    following_authors_posts = (Post.
+                               objects.
+                               filter(
+                                   author__id__in=user_follows_authors_ids))
 
     context = {
         'page_obj': get_page(request,
-                             user_follow_authors_posts,
+                             following_authors_posts,
                              POSTS_PER_PAGE)
     }
     return render(request, 'posts/follow.html', context)
@@ -156,5 +156,4 @@ def profile_unfollow(request, username):
     author = get_object_or_404(User, username=username)
     follows = Follow.objects.filter(user=request.user, author=author)
     follows.delete()
-
     return redirect('posts:profile', username=author)

@@ -4,6 +4,18 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 
+class CreatedModel(models.Model):
+    """Абстрактная модель. Добавляет дату создания."""
+    created = models.DateTimeField(
+        'Дата создания',
+        auto_now_add=True
+    )
+
+    class Meta:
+        # Это абстрактная модель:
+        abstract = True
+
+
 class Group(models.Model):
     title = models.CharField(max_length=200, unique=True)
     slug = models.SlugField(unique=True)
@@ -13,12 +25,12 @@ class Group(models.Model):
         return self.title
 
 
-class Post(models.Model):
+class Post(CreatedModel):
     text = models.TextField(verbose_name="Текст поста",
                             help_text="Введите текст поста")
 
-    pub_date = models.DateTimeField(verbose_name='Дата публикации',
-                                    auto_now_add=True)
+    # pub_date = models.DateTimeField(verbose_name='Дата публикации',
+    #                                 auto_now_add=True)
 
     author = models.ForeignKey(User,
                                on_delete=models.CASCADE,
@@ -45,12 +57,12 @@ class Post(models.Model):
         return self.text[:15]
 
     class Meta:
-        ordering = ['-pub_date']
+        ordering = ['-created']
         verbose_name = 'Пост'
         verbose_name_plural = 'Посты'
 
 
-class Comment(models.Model):
+class Comment(CreatedModel):
     post = models.ForeignKey(Post,
                              on_delete=models.CASCADE,
                              related_name='comments',
@@ -64,9 +76,6 @@ class Comment(models.Model):
 
     text = models.TextField(verbose_name='Текст комментария',
                             help_text='Введите текст комментария')
-
-    created = models.DateTimeField(verbose_name='Дата создания',
-                                   auto_now_add=True)
 
     class Meta:
         ordering = ['-created']
