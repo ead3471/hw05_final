@@ -183,9 +183,6 @@ class PostsPagesTests(TestCase):
                            [response.context.get("post")],
                            [PostsPagesTests.test_post])
 
-        # Check page dont contain comment form
-        self.assertNotIn("form", response.context)
-
     def test_index_page_context_and_paginator(self):
         POSTS_PER_PAGE = 10
         cache.clear()
@@ -339,6 +336,20 @@ class PostsPagesTests(TestCase):
                          objects.
                          filter(user=PostsPagesTests.auth_user).
                          filter(author=follow_author).exists())
+
+    def test_double_follow(self):
+        follower_client = PostsPagesTests.auth_client
+        author = PostsPagesTests.tests_authors[0]
+        author_folowers_count = author.following.count()
+
+        follower_client.get(reverse('posts:profile_follow',
+                                    args=(author.username,)))
+
+        self.assertEquals(author_folowers_count + 1, author.following.count())
+        follower_client.get(reverse('posts:profile_follow',
+                                    args=(author.username,)))
+
+        self.assertEquals(author_folowers_count + 1, author.following.count())
 
     def test_post_shows_to_followers(self):
         post_author = PostsPagesTests.tests_authors[0]

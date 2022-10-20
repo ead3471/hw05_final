@@ -60,11 +60,9 @@ def post_detail(request, post_id):
     post = get_object_or_404(Post, pk=post_id)
     context = {
         'post': post,
-        'comments': post.comments.all()
+        'comments': post.comments.all(),
+        'form': CommentForm()
     }
-
-    if request.user.is_authenticated:
-        context['form'] = CommentForm()
 
     return render(request, 'posts/post_detail.html', context)
 
@@ -144,9 +142,12 @@ def follow_index(request):
 @login_required
 def profile_follow(request, username):
     author = get_object_or_404(User, username=username)
-    Follow.objects.create(user=request.user,
-                          author=author)
-
+    follow_exist = request.user.id in (author.
+                                       following
+                                       .all()
+                                       .values_list('user', flat=True))
+    if author != request.user and not follow_exist:
+        Follow.objects.create(user=request.user, author=author)
     return redirect('posts:profile', username=author)
 
 

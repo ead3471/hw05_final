@@ -76,10 +76,12 @@ class Comment(models.Model):
 
 class Follow(models.Model):
     user = models.ForeignKey(User,
-                             on_delete=models.CASCADE)
+                             on_delete=models.CASCADE,
+                             related_name='follower')  # подписки юзера
     author = models.ForeignKey(User,
                                on_delete=models.CASCADE,
-                               related_name='following')
+                               related_name='following')  # подписчика юзера
 
     def __str__(self):
-        return f"{self.user.username}({self.user.id})->{self.author.username}({self.author.id})"
+        return (f"{self.user.username}({self.user.id})->"
+                f"{self.author.username}({self.author.id})")

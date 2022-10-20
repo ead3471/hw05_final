@@ -12,8 +12,6 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 
 import os
 
-
-
 LOGIN_URL = 'users:login'
 LOGIN_REDIRECT_URL = 'posts:index'
 

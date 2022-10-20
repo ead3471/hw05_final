@@ -129,7 +129,7 @@ dmypy.json
 .pyre/
 
 # Папки, создаваемые средой разработки
-.idea
+.ideasou
 .DS_Store
 .AppleDouble
 .LSOverride
