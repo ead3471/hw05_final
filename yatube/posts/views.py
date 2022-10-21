@@ -7,13 +7,13 @@ from .utils import get_page
 from django.utils import timezone
 from django.views.decorators.cache import cache_page
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic import CreateView, UpdateView
+from django.views.generic import CreateView, UpdateView, ListView
 from django.urls import reverse
 
 User = get_user_model()
 
 
-@cache_page(20, key_prefix="index_page")
+#@cache_page(20, key_prefix="index_page")
 def index(request):
     POSTS_PER_PAGE = 10
     template = 'posts/index.html'
@@ -24,6 +24,19 @@ def index(request):
 
     return render(request, template, context)
 
+
+class IndexPageView(ListView):
+    model = Post
+    allow_empty: bool = True
+    template_name: str = 'posts/index.html'
+    paginate_by: int = 10
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['page_obj'] = get_page(self.request,
+                                       Post.objects.all(),
+                                       self.paginate_by)
+        return context
 
 def group_posts(request, slug):
     POSTS_PER_PAGE = 10
@@ -125,24 +138,24 @@ class PostEditView(LoginRequiredMixin, UpdateView):
         form.save()
         return redirect('posts:post_detail', post_id=self.get_object().pk)
 
-@login_required
-def post_edit(request, post_id):
-    post = get_object_or_404(Post, pk=post_id)
-    if post.author != request.user:
-        return redirect('posts:post_detail', post_id=post.pk)
+# @login_required
+# def post_edit(request, post_id):
+#     post = get_object_or_404(Post, pk=post_id)
+#     if post.author != request.user:
+#         return redirect('posts:post_detail', post_id=post.pk)
 
-    form = PostForm(request.POST or None,
-                    files=request.FILES or None,
-                    instance=post)
-    if request.method == "POST":
-        if form.is_valid():
-            form.save()
-            return redirect('posts:post_detail', post_id=post.pk)
+#     form = PostForm(request.POST or None,
+#                     files=request.FILES or None,
+#                     instance=post)
+#     if request.method == "POST":
+#         if form.is_valid():
+#             form.save()
+#             return redirect('posts:post_detail', post_id=post.pk)
 
-    return render(request,
-                  'posts/create_post.html',
-                  {'form': form,
-                   'is_edit': True})
+#     return render(request,
+#                   'posts/create_post.html',
+#                   {'form': form,
+#                    'is_edit': True})
 
 
 @login_required
