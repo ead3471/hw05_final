@@ -5,7 +5,6 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from .utils import get_page
 from django.utils import timezone
-from django.views.decorators.cache import cache_page
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import CreateView, UpdateView, ListView
 from django.urls import reverse
@@ -39,19 +38,19 @@ class IndexPageView(ListView):
         return context
 
 
-def group_posts(request, slug):
-    POSTS_PER_PAGE = 10
-    template = 'posts/group_list.html'
-    group = get_object_or_404(Group, slug=slug)
-    title = f'Записи сообщества {group.title}'
-    posts = group.posts.all()
-    context = {
-        'title': title,
-        'group': group,
-        'page_obj': get_page(request, posts, POSTS_PER_PAGE)
-    }
+# def group_posts(request, slug):
+#     POSTS_PER_PAGE = 10
+#     template = 'posts/group_list.html'
+#     group = get_object_or_404(Group, slug=slug)
+#     title = f'Записи сообщества {group.title}'
+#     posts = group.posts.all()
+#     context = {
+#         'title': title,
+#         'group': group,
+#         'page_obj': get_page(request, posts, POSTS_PER_PAGE)
+#     }
 
-    return render(request, template, context)
+#     return render(request, template, context)
 
 
 class GroupPageView(ListView):
@@ -71,6 +70,7 @@ class GroupPageView(ListView):
         context['group'] = self.group
         return context
 
+
 def profile(request, username):
     POSTS_PER_PAGE = 10
     profile_user = get_object_or_404(User, username=username)
@@ -87,6 +87,31 @@ def profile(request, username):
         'following': profile_user_is_in_followings
     }
     return render(request, 'posts/profile.html', context)
+
+
+class ProfilePageView(ListView):
+    model = Post
+    allow_empty: bool = True
+    template_name: str = 'posts/profile.html'
+    paginate_by: int = 10
+    context_object_name = 'page_obj'
+
+    def get_queryset(self):
+        self.author = get_object_or_404(User,
+                                        username=self.kwargs['username'])
+        author_posts = self.author.posts.all()
+        return author_posts
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        profile_user_is_in_followings = (Follow.
+                                         objects.
+                                         filter(user=self.request.user).
+                                         filter(author=self.author).exists())
+
+        context['author'] = self.author
+        context['following']: profile_user_is_in_followings
+        return context
 
 
 def post_detail(request, post_id):
