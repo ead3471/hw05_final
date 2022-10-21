@@ -1,12 +1,12 @@
+
 {% extends "base.html" %}
 {% load thumbnail %}
-{% load cache %}
-
 {% block title %}
   Последние обновления на сайте
 {% endblock title %}
 
 {% block content %}
+{% load cache %}
 {% cache 20 index_page %}
   {% include "posts/includes/switcher.html" %}
   <div class="container">
@@ -37,9 +37,10 @@
 
       {% endfor %}
      
-
+      
     {% include "posts/includes/paginator.html" %}
   </div>
-  {% endcache %} 
+  {% endcache %}
 {% endblock content %}
+
 

@@ -243,7 +243,7 @@ class PostsPagesTests(TestCase):
                 posts_from_page = (PostsPagesTests.
                                    auth_client
                                    .get(url)
-                                   .context['page_obj']).object_list
+                                   .context['page_obj'])
                 check_page_contains_post_on_first_position(self,
                                                            posts_from_page,
                                                            new_post_with_group)

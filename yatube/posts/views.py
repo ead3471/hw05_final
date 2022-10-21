@@ -12,7 +12,6 @@ from django.urls import reverse
 User = get_user_model()
 
 
-#@cache_page(20, key_prefix="index_page")
 # def index(request):
 #     POSTS_PER_PAGE = 10
 #     template = 'posts/index.html'
@@ -34,7 +33,7 @@ class IndexPageView(ListView):
         context = super().get_context_data(**kwargs)
         context['page_obj'] = get_page(self.request,
                                        Post.objects.all(),
-                                       self.paginate_by)
+                                       10)
         return context
 
 
@@ -106,11 +105,12 @@ class ProfilePageView(ListView):
         context = super().get_context_data(**kwargs)
         profile_user_is_in_followings = (Follow.
                                          objects.
-                                         filter(user=self.request.user).
+                                         filter(user__id=self.request.user.id).
                                          filter(author=self.author).exists())
 
         context['author'] = self.author
         context['following']: profile_user_is_in_followings
+        context['page_obj'] = get_page(self.request,context['page_obj'],self.paginate_by)
         return context
 
 
