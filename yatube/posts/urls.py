@@ -41,15 +41,25 @@ urlpatterns = [
          views.FollowIndexView.as_view(),
          name='follow_index'),
     # Зарегестрировать подписку на автора
+    # path(
+    #     'profile/<str:username>/follow/',
+    #     views.profile_follow,
+    #     name='profile_follow'
+    # ),
     path(
         'profile/<str:username>/follow/',
-        views.profile_follow,
+        views.FollowView.as_view(),
         name='profile_follow'
     ),
     # Отписаться от автора
+    # path(
+    #     'profile/<str:username>/unfollow/',
+    #     views.profile_unfollow,
+    #     name='profile_unfollow'
+    # ),
     path(
         'profile/<str:username>/unfollow/',
-        views.profile_unfollow,
+        views.UnfollowView.as_view(),
         name='profile_unfollow'
     ),
 

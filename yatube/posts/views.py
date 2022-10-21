@@ -221,18 +221,18 @@ class PostEditView(LoginRequiredMixin, UpdateView):
 #                    'is_edit': True})
 
 
-@login_required
-def add_comment(request, post_id):
-    form = CommentForm(request.POST or None)
-    post = get_object_or_404(Post, pk=post_id)
-    if request.method == 'POST':
-        if form.is_valid():
-            comment = form.save(commit=False)  # type: Comment
-            comment.author = request.user
-            comment.created = timezone.now()
-            comment.post = post
-            comment.save()
-            return redirect('posts:post_detail', post_id=post.pk)
+# @login_required
+# def add_comment(request, post_id):
+#     form = CommentForm(request.POST or None)
+#     post = get_object_or_404(Post, pk=post_id)
+#     if request.method == 'POST':
+#         if form.is_valid():
+#             comment = form.save(commit=False)  # type: Comment
+#             comment.author = request.user
+#             comment.created = timezone.now()
+#             comment.post = post
+#             comment.save()
+#             return redirect('posts:post_detail', post_id=post.pk)
 
 
 class AddCommentView(LoginRequiredMixin, BaseCreateView):
@@ -251,16 +251,30 @@ class AddCommentView(LoginRequiredMixin, BaseCreateView):
 
 
 
-@login_required
-def profile_follow(request, username):
-    author = get_object_or_404(User, username=username)
-    follow_exist = request.user.id in (author.
-                                       following
-                                       .all()
-                                       .values_list('user', flat=True))
-    if author != request.user and not follow_exist:
-        Follow.objects.create(user=request.user, author=author)
-    return redirect('posts:profile', username=author)
+# @login_required
+# def profile_follow(request, username):
+#     author = get_object_or_404(User, username=username)
+#     follow_exist = request.user.id in (author.
+#                                        following
+#                                        .all()
+#                                        .values_list('user', flat=True))
+#     if author != request.user and not follow_exist:
+#         Follow.objects.create(user=request.user, author=author)
+#     return redirect('posts:profile', username=author)
+
+
+class FollowView(LoginRequiredMixin, View):
+    def get(self, request, username):
+
+        author = get_object_or_404(User, username=username)
+        follow_exist = request.user.id in (author.
+                                           following.
+                                           all().
+                                           values_list('user', flat=True))
+        if author != request.user and not follow_exist:
+            Follow.objects.create(user=request.user, author=author)
+        return redirect('posts:profile', username=username)
+
 
 # @login_required
 # def follow_index(request):
@@ -312,7 +326,7 @@ class FollowIndexView(LoginRequiredMixin, ListView):
                                                      self.paginate_by)
         return context
 
-#class FollowView(LoginRequiredMixin, View):
+
 
 
 @login_required
@@ -321,3 +335,10 @@ def profile_unfollow(request, username):
     follows = Follow.objects.filter(user=request.user, author=author)
     follows.delete()
     return redirect('posts:profile', username=author)
+
+class UnfollowView(LoginRequiredMixin, View):
+    def get(self, request, username):
+        author = get_object_or_404(User, username=username)
+        follows = Follow.objects.filter(user=request.user, author=author)
+        follows.delete()
+        return redirect('posts:profile', username=author)
