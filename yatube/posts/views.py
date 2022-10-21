@@ -1,3 +1,4 @@
+from multiprocessing import get_context
 from django.shortcuts import redirect, render, get_object_or_404
 from .models import Follow, Post, Group, Comment
 from .forms import PostForm, CommentForm
@@ -6,7 +7,8 @@ from django.contrib.auth.decorators import login_required
 from .utils import get_page
 from django.utils import timezone
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic import CreateView, UpdateView, ListView
+from django.views.generic import CreateView, UpdateView, ListView, DetailView
+from django.views.generic.base import ContextMixin
 from django.urls import reverse
 
 User = get_user_model()
@@ -70,22 +72,22 @@ class GroupPageView(ListView):
         return context
 
 
-def profile(request, username):
-    POSTS_PER_PAGE = 10
-    profile_user = get_object_or_404(User, username=username)
-    posts = profile_user.posts.all()
+# def profile(request, username):
+#     POSTS_PER_PAGE = 10
+#     profile_user = get_object_or_404(User, username=username)
+#     posts = profile_user.posts.all()
 
-    profile_user_is_in_followings = (Follow.
-                                     objects.
-                                     filter(user__id=request.user.id).
-                                     filter(author=profile_user).exists())
+#     profile_user_is_in_followings = (Follow.
+#                                      objects.
+#                                      filter(user__id=request.user.id).
+#                                      filter(author=profile_user).exists())
 
-    context = {
-        'author': profile_user,
-        'page_obj': get_page(request, posts, POSTS_PER_PAGE),
-        'following': profile_user_is_in_followings
-    }
-    return render(request, 'posts/profile.html', context)
+#     context = {
+#         'author': profile_user,
+#         'page_obj': get_page(request, posts, POSTS_PER_PAGE),
+#         'following': profile_user_is_in_followings
+#     }
+#     return render(request, 'posts/profile.html', context)
 
 
 class ProfilePageView(ListView):
@@ -110,19 +112,36 @@ class ProfilePageView(ListView):
 
         context['author'] = self.author
         context['following']: profile_user_is_in_followings
-        context['page_obj'] = get_page(self.request,context['page_obj'],self.paginate_by)
+        context['page_obj'] = get_page(self.request,
+                                       context['page_obj'],
+                                       self.paginate_by)
         return context
 
 
-def post_detail(request, post_id):
-    post = get_object_or_404(Post, pk=post_id)
-    context = {
-        'post': post,
-        'comments': post.comments.all(),
-        'form': CommentForm()
-    }
 
-    return render(request, 'posts/post_detail.html', context)
+# def post_detail(request, post_id):
+#     post = get_object_or_404(Post, pk=post_id)
+#     context = {
+#         'post': post,
+#         'comments': post.comments.all(),
+#         'form': CommentForm()
+#     }
+
+#     return render(request, 'posts/post_detail.html', context)
+
+class PostDetailView(DetailView):
+    template_name = 'posts/post_detail.html'
+    model = Post
+    context_object_name = 'post'
+    pk_url_kwarg = 'post_id'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["form"] = CommentForm()
+        context['comments'] = self.get_object().comments.all()
+        return context
+
+
 
 
 class PostCreateView(LoginRequiredMixin, CreateView):
