@@ -14,15 +14,15 @@ User = get_user_model()
 
 
 #@cache_page(20, key_prefix="index_page")
-def index(request):
-    POSTS_PER_PAGE = 10
-    template = 'posts/index.html'
-    posts = Post.objects.all()
-    context = {
-        'page_obj': get_page(request, posts, POSTS_PER_PAGE)
-    }
+# def index(request):
+#     POSTS_PER_PAGE = 10
+#     template = 'posts/index.html'
+#     posts = Post.objects.all()
+#     context = {
+#         'page_obj': get_page(request, posts, POSTS_PER_PAGE)
+#     }
 
-    return render(request, template, context)
+#     return render(request, template, context)
 
 
 class IndexPageView(ListView):
@@ -38,6 +38,7 @@ class IndexPageView(ListView):
                                        self.paginate_by)
         return context
 
+
 def group_posts(request, slug):
     POSTS_PER_PAGE = 10
     template = 'posts/group_list.html'
@@ -52,6 +53,23 @@ def group_posts(request, slug):
 
     return render(request, template, context)
 
+
+class GroupPageView(ListView):
+    model = Post
+    allow_empty: bool = True
+    template_name: str = 'posts/group_list.html'
+    paginate_by: int = 10
+    context_object_name = 'object_list'
+
+    def get_queryset(self):
+        self.group = get_object_or_404(Group, slug=self.kwargs['slug'])
+        group_posts = self.group.posts.all()
+        return group_posts
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['group'] = self.group
+        return context
 
 def profile(request, username):
     POSTS_PER_PAGE = 10
