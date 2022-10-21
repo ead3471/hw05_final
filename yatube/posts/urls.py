@@ -30,8 +30,11 @@ urlpatterns = [
         views.add_comment,
         name='add_comment'),
     # Страница постов из подписок
+    # path('follow/',
+    #      views.follow_index,
+    #      name='follow_index'),
     path('follow/',
-         views.follow_index,
+         views.FollowIndexView.as_view(),
          name='follow_index'),
     # Зарегестрировать подписку на автора
     path(

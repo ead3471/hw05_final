@@ -8,7 +8,7 @@ from .utils import get_page
 from django.utils import timezone
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import CreateView, UpdateView, ListView, DetailView
-from django.views.generic.base import ContextMixin
+from django.views.generic import View
 from django.urls import reverse
 
 User = get_user_model()
@@ -234,26 +234,6 @@ def add_comment(request, post_id):
             return redirect('posts:post_detail', post_id=post.pk)
 
 
-@login_required
-def follow_index(request):
-    POSTS_PER_PAGE = 10
-    user_follows_authors_ids = (request.
-                                user.
-                                follower.
-                                values_list("author__id", flat=True))
-
-    following_authors_posts = (Post.
-                               objects.
-                               filter(
-                                   author__id__in=user_follows_authors_ids))
-
-    context = {
-        'page_obj': get_page(request,
-                             following_authors_posts,
-                             POSTS_PER_PAGE)
-    }
-    return render(request, 'posts/follow.html', context)
-
 
 @login_required
 def profile_follow(request, username):
@@ -265,6 +245,58 @@ def profile_follow(request, username):
     if author != request.user and not follow_exist:
         Follow.objects.create(user=request.user, author=author)
     return redirect('posts:profile', username=author)
+
+# @login_required
+# def follow_index(request):
+#     POSTS_PER_PAGE = 10
+#     user_follows_authors_ids = (request.
+#                                 user.
+#                                 follower.
+#                                 values_list("author__id", flat=True))
+
+#     following_authors_posts = (Post.
+#                                objects.
+#                                filter(
+#                                    author__id__in=user_follows_authors_ids))
+
+#     context = {
+#         'page_obj': get_page(request,
+#                              following_authors_posts,
+#                              POSTS_PER_PAGE)
+#     }
+#     return render(request, 'posts/follow.html', context)
+
+
+class FollowIndexView(LoginRequiredMixin, ListView):
+    model = Post
+    allow_empty: bool = True
+    template_name: str = 'posts/follow.html'
+    paginate_by: int = 10
+    context_object_name = 'page_obj'
+
+    def get_queryset(self):
+        user_following_ids = (self.
+                              request.
+                              user.
+                              follower.
+                              values_list("author__id", flat=True))
+
+        following_authors_posts = (Post.
+                                   objects.
+                                   filter(author__id__in=user_following_ids))
+
+        return following_authors_posts
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context[self.context_object_name] = get_page(self.request,
+                                                     context
+                                                     [self.
+                                                      context_object_name],
+                                                     self.paginate_by)
+        return context
+
+#class FollowView(LoginRequiredMixin, View):
 
 
 @login_required
