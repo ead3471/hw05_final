@@ -25,9 +25,13 @@ urlpatterns = [
     #path('posts/<int:post_id>/edit/', views.post_edit, name='post_edit'),
     path('posts/<int:pk>/edit/', views.PostEditView.as_view(), name='post_edit'),
     # Добавление поста
+    # path(
+    #     'posts/<int:post_id>/comment/',
+    #     views.add_comment,
+    #     name='add_comment'),
     path(
         'posts/<int:post_id>/comment/',
-        views.add_comment,
+        views.AddCommentView.as_view(),
         name='add_comment'),
     # Страница постов из подписок
     # path('follow/',

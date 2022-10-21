@@ -9,6 +9,7 @@ from django.utils import timezone
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import CreateView, UpdateView, ListView, DetailView
 from django.views.generic import View
+from django.views.generic.edit import BaseCreateView
 from django.urls import reverse
 
 User = get_user_model()
@@ -232,6 +233,21 @@ def add_comment(request, post_id):
             comment.post = post
             comment.save()
             return redirect('posts:post_detail', post_id=post.pk)
+
+
+class AddCommentView(LoginRequiredMixin, BaseCreateView):
+    model = Comment
+    fields = ['text']
+    form_class: CommentForm
+
+    def form_valid(self, form):
+        post = get_object_or_404(Post, pk=self.kwargs['post_id'])
+        comment = form.save(commit=False)  # type: Comment
+        comment.author = self.request.user
+        comment.created = timezone.now()
+        comment.post = post
+        comment.save()
+        return redirect('posts:post_detail', post_id=post.pk)
 
 
 
