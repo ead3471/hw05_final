@@ -17,11 +17,15 @@
             <li>Дата публикации: {{ post.created|date:"d E Y" }}</li>
           </ul>
           {% thumbnail post.image "960x339" crop="center" upscale=True as im %}
-          <img class="card-img my-2" src="{{ im.url }}"/>
-        {% endthumbnail %}
+            <img class="card-img my-2" src="{{ im.url }}"/>
+          {% endthumbnail %}
         
-        <p>{{ post.text }}</p>
-        <a href="{% url 'posts:post_detail' post.pk %}">подробная информация</a>
+          <p>
+            {{ post.text }}
+          </p>
+          <a href="{% url 'posts:post_detail' post.pk %}">
+            подробная информация
+          </a>
         </article>
 
         {% if post.group %}
@@ -29,7 +33,8 @@
         {% endif %}
 
         {% if not forloop.last %}<hr/>{% endif %}
-      {% endfor %}
+
+        {% endfor %}
     {% include "posts/includes/paginator.html" %}
   </div>
 {% endblock content %}

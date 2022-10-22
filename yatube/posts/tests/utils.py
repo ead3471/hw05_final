@@ -34,7 +34,7 @@ def compare_model_objects_list(test_case: TestCase,
                                model_attributes: List[str] = None):
     """Sequentely compares all given attributes from
     testing_objects list with attributes from expected_objects list.
-    If model_attributes is None method will checkk all attributes"""
+    If model_attributes is None method will check all attributes"""
 
     test_case.assertEquals(len(testing_objects), len(expected_objects))
     if len(testing_objects) == 0:

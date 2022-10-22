@@ -107,7 +107,6 @@ class PostTestForms(TestCase):
                                 args=(PostTestForms.new_post.id,)),
                         data=edit_post_data,
                         follow=True))
-        
 
         self.assertRedirects(
             response,
