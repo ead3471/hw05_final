@@ -6,7 +6,7 @@
 
 {% block content %}
 {% load cache %}
-{% cache 20 index_page %}
+{% cache 20 index_page page_obj.number %}
   {% include "posts/includes/switcher.html" %}
   <div class="container">
     <h1>Последние обновления на сайте</h1>
