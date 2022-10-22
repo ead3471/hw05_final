@@ -89,7 +89,7 @@ class Follow(models.Model):
                              related_name='follower')  # подписки юзера
     author = models.ForeignKey(User,
                                on_delete=models.CASCADE,
-                               related_name='following')  # подписчика юзера
+                               related_name='following')  # подписчики юзера
 
     def __str__(self):
         return (f"{self.user.username}({self.user.id})->"
