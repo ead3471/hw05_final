@@ -9,7 +9,7 @@
     {% with show_author=True %}
       {% for post in page_obj %}
         {% include "posts/includes/post_list.html" %}
-      {% if not forloop.last %}<hr/>{% endif %}
+        {% if not forloop.last %}<hr/>{% endif %}
       {% endfor %}
     {% endwith %}
     <!-- под последним постом нет линии -->

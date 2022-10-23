@@ -2,8 +2,6 @@ from django.shortcuts import redirect, get_object_or_404
 from .models import Follow, Post, Group, Comment
 from .forms import PostForm, CommentForm
 from django.contrib.auth import get_user_model
-from .utils import get_page
-from django.utils import timezone
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import CreateView, UpdateView, ListView, DetailView
 from django.views.generic import View
@@ -21,9 +19,6 @@ class IndexPageView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['page_obj'] = get_page(self.request,
-                                       Post.objects.all(),
-                                       10)
         return context
 
 
@@ -32,7 +27,6 @@ class GroupPageView(ListView):
     allow_empty: bool = True
     template_name: str = 'posts/group_list.html'
     paginate_by: int = 10
-    context_object_name = 'object_list'
 
     def get_queryset(self):
         self.group = get_object_or_404(Group, slug=self.kwargs['slug'])
@@ -50,7 +44,6 @@ class ProfilePageView(ListView):
     allow_empty: bool = True
     template_name: str = 'posts/profile.html'
     paginate_by: int = 10
-    context_object_name = 'page_obj'
 
     def get_queryset(self):
         self.author = get_object_or_404(User,
@@ -66,10 +59,7 @@ class ProfilePageView(ListView):
                                          filter(author=self.author).exists())
 
         context['author'] = self.author
-        context['following']: profile_user_is_in_followings
-        context['page_obj'] = get_page(self.request,
-                                       context['page_obj'],
-                                       self.paginate_by)
+        context['following'] = profile_user_is_in_followings
         return context
 
 
@@ -94,7 +84,6 @@ class PostCreateView(LoginRequiredMixin, CreateView):
 
     def form_valid(self, form):
         post = form.save(commit=False)
-        post.created = timezone.now()
         post.author = self.request.user
         post.save()
         return redirect('posts:profile', username=self.request.user.username)
@@ -135,7 +124,6 @@ class AddCommentView(LoginRequiredMixin, BaseCreateView):
         post = get_object_or_404(Post, pk=self.kwargs['post_id'])
         comment = form.save(commit=False)  # type: Comment
         comment.author = self.request.user
-        comment.created = timezone.now()
         comment.post = post
         comment.save()
         return redirect('posts:post_detail', post_id=post.pk)
@@ -145,10 +133,12 @@ class FollowView(LoginRequiredMixin, View):
     def get(self, request, username):
 
         author = get_object_or_404(User, username=username)
-        follow_exist = request.user.id in (author.
-                                           following.
-                                           all().
-                                           values_list('user', flat=True))
+        follow_exist = author.id in (request.
+                                     user.
+                                     follower.
+                                     all().
+                                     values_list('author', flat=True))
+
         if author != request.user and not follow_exist:
             Follow.objects.create(user=request.user, author=author)
         return redirect('posts:profile', username=username)
@@ -159,29 +149,11 @@ class FollowIndexView(LoginRequiredMixin, ListView):
     allow_empty: bool = True
     template_name: str = 'posts/follow.html'
     paginate_by: int = 10
-    context_object_name = 'page_obj'
 
     def get_queryset(self):
-        user_following_ids = (self.
-                              request.
-                              user.
-                              follower.
-                              values_list("author__id", flat=True))
-
-        following_authors_posts = (Post.
-                                   objects.
-                                   filter(author__id__in=user_following_ids))
-
-        return following_authors_posts
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context[self.context_object_name] = get_page(self.request,
-                                                     context
-                                                     [self.
-                                                      context_object_name],
-                                                     self.paginate_by)
-        return context
+        return (Post.
+                objects.
+                filter(author__following__user=self.request.user))
 
 
 class UnfollowView(LoginRequiredMixin, View):

@@ -47,10 +47,15 @@ class PostsPagesTests(TestCase):
             author=cls.auth_user
         )
 
+        # Create testing users
         cls.tests_authors = []
         for author_number in range(3):
             new_author = User.objects.create_user(f"Author_{author_number}")
             cls.tests_authors.append(new_author)
+
+        # Create Following
+        Follow.objects.create(user=cls.auth_user,
+                              author=cls.tests_authors[2])
 
         cls.tests_groups = []
         for group_number in range(3):
@@ -194,17 +199,32 @@ class PostsPagesTests(TestCase):
 
     def test_profile_page_context_and_paginator(self):
         POSTS_PER_PAGE = 10
+
         for author in PostsPagesTests.tests_authors:
             with self.subTest(author=author):
                 response = PostsPagesTests.auth_client.get(
                     reverse(
                         "posts:profile",
                         args=(author.username,)))
+                author_is_in_user_followings = (author.id in
+                                                (PostsPagesTests.
+                                                 auth_user.
+                                                 follower.
+                                                 all().
+                                                 values_list('author',
+                                                             flat=True)))
+
+                self.assertEquals(author_is_in_user_followings,
+                                  response.context.get("following"))
+
+                self.assertEquals(author, response.context.get('author'))
+
                 posts_from_page = response.context.get("page_obj")
                 posts_from_database = (Post
                                        .objects
                                        .filter(author=author)
                                        [:POSTS_PER_PAGE])
+
                 check_posts_fields(self, posts_from_page, posts_from_database)
 
     def test_group_page_context_and_paginator(self):
