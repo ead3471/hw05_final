@@ -17,10 +17,6 @@ class IndexPageView(ListView):
     template_name: str = 'posts/index.html'
     paginate_by: int = 10
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        return context
-
 
 class GroupPageView(ListView):
     model = Post
@@ -92,7 +88,7 @@ class PostCreateView(LoginRequiredMixin, CreateView):
 class PostEditView(LoginRequiredMixin, UpdateView):
     model = Post
     template_name = 'posts/create_post.html'
-    fields = ['text', 'image', 'group']
+    form_class = PostForm
 
     def get_success_url(self):
         return reverse('posts:post_detail', args=(self.get_object().pk,))
@@ -117,8 +113,7 @@ class PostEditView(LoginRequiredMixin, UpdateView):
 
 class AddCommentView(LoginRequiredMixin, BaseCreateView):
     model = Comment
-    fields = ['text']
-    form_class: CommentForm
+    form_class = CommentForm
 
     def form_valid(self, form):
         post = get_object_or_404(Post, pk=self.kwargs['post_id'])
@@ -133,11 +128,7 @@ class FollowView(LoginRequiredMixin, View):
     def get(self, request, username):
 
         author = get_object_or_404(User, username=username)
-        follow_exist = author.id in (request.
-                                     user.
-                                     follower.
-                                     all().
-                                     values_list('author', flat=True))
+        follow_exist = request.user.follower.filter(author=author).exists()
 
         if author != request.user and not follow_exist:
             Follow.objects.create(user=request.user, author=author)

@@ -206,13 +206,11 @@ class PostsPagesTests(TestCase):
                     reverse(
                         "posts:profile",
                         args=(author.username,)))
-                author_is_in_user_followings = (author.id in
-                                                (PostsPagesTests.
-                                                 auth_user.
-                                                 follower.
-                                                 all().
-                                                 values_list('author',
-                                                             flat=True)))
+                author_is_in_user_followings = (PostsPagesTests.
+                                                auth_user.
+                                                follower.
+                                                filter(author=author).
+                                                exists())
 
                 self.assertEquals(author_is_in_user_followings,
                                   response.context.get("following"))
