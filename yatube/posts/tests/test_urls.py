@@ -208,7 +208,7 @@ class PostUrlsTests(TestCase):
                 "posts/create_post.html",
 
             f"/posts/{PostUrlsTests.author_1_post.id}/edit/":
-                "posts/create_post.html",
+                "posts/create_post1.html",
         }
 
         check_responses_of_given_urls(self,
